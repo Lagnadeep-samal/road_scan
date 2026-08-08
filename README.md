@@ -13,19 +13,28 @@ paths, no server crashes on bad uploads, no page reloads on every submit).
 
 ```
 pothole-detection-system/
+│
 ├── backend/
-│   ├── main.py            FastAPI app (see below)
+│   ├── main.py
 │   ├── requirements.txt
-│   ├── models/best.pt     trained YOLOv8 weights (minor/medium/major pothole)
-│   └── results/           annotated output images (auto-created, auto-pruned)
+│   │
+│   ├── models/
+│   │   └── best.pt
+│   │
+│   └── results/
+│       └── .gitkeep
+│
 ├── frontend/
 │   ├── index.html
 │   ├── style.css
-│   └── app.js
-├── train.py                original training script (reference only)
+│   ├── app.js
+│   └── config.js
+│
+├── train.py
 ├── split_dataset.py
 ├── convert.py
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 ## Running it
