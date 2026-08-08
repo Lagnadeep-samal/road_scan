@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadScan — AI Pothole Detection</title>
+<meta name="description" content="Upload a road photo and get instant pothole detection with severity grading and a road condition score.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="road-noise" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">ROAD<span class="brand-accent">SCAN</span></span>
+    </div>
+    <div class="status-pill" id="statusPill" data-state="checking">
+      <span class="status-dot"></span>
+      <span class="status-text" id="statusText">Checking backend…</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= HERO / UPLOAD ================= -->
+  <section class="hero" id="hero">
+    <div class="lane-divider" aria-hidden="true"></div>
+
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">AI ROAD INSPECTION · MODEL v2</span>
+        <h1 class="headline">SEE WHAT<br>THE ROAD<br>IS HIDING</h1>
+        <p class="sub">Drop a photo from a dash-cam, phone, or drive-by shot. The model marks every pothole, grades its severity, and scores the road surface in seconds.</p>
+
+        <ul class="legend-inline" aria-label="Severity legend">
+          <li><span class="dot dot-minor"></span> Minor</li>
+          <li><span class="dot dot-medium"></span> Medium</li>
+          <li><span class="dot dot-major"></span> Major</li>
+        </ul>
+      </div>
+
+      <div class="scan-panel">
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a road photo">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/bmp" hidden>
+
+          <div class="dz-empty" id="dzEmpty">
+            <div class="dz-icon">▲</div>
+            <p class="dz-title">Drop a road photo here</p>
+            <p class="dz-sub">or click to browse · JPG, PNG, WEBP up to 15MB</p>
+          </div>
+
+          <div class="dz-preview" id="dzPreview" hidden>
+            <img id="previewImg" alt="Selected road photo preview">
+            <div class="scan-beam" id="scanBeam" hidden></div>
+            <button class="dz-clear" id="dzClear" type="button" aria-label="Remove image">✕</button>
+          </div>
+        </div>
+
+        <div class="dz-file-info" id="fileInfo" hidden>
+          <span id="fileName"></span>
+          <span id="fileSize"></span>
+        </div>
+
+        <button class="btn-primary" id="analyzeBtn" disabled>
+          <span id="analyzeLabel">Analyze Road</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULTS ================= -->
+  <section class="results" id="results" hidden>
+    <div class="lane-divider" aria-hidden="true"></div>
+
+    <div class="results-head">
+      <span class="eyebrow">DETECTION REPORT</span>
+      <h2 id="conditionHeadline">—</h2>
+      <p class="results-meta">
+        <span id="metaTotal">0 potholes</span> detected in
+        <span id="metaTime">0ms</span>
+        <button class="link-btn" id="toggleImgBtn">show original</button>
+      </p>
+    </div>
+
+    <div class="results-grid">
+
+      <div class="result-image-card">
+        <img id="resultImg" alt="Annotated detection result">
+        <div class="image-caption">Bounding boxes are colour-coded by severity. Percentages show model confidence.</div>
+      </div>
+
+      <div class="result-panel">
+
+        <div class="severity-cards">
+          <div class="sev-card sev-minor">
+            <span class="sev-label">Minor</span>
+            <span class="sev-count" id="countMinor">0</span>
+          </div>
+          <div class="sev-card sev-medium">
+            <span class="sev-label">Medium</span>
+            <span class="sev-count" id="countMedium">0</span>
+          </div>
+          <div class="sev-card sev-major">
+            <span class="sev-label">Major</span>
+            <span class="sev-count" id="countMajor">0</span>
+          </div>
+        </div>
+
+        <div class="gauge-block">
+          <div class="gauge-labels">
+            <span>Road score</span>
+            <span class="gauge-score" id="gaugeScore">0</span>
+          </div>
+          <div class="gauge-track">
+            <div class="gauge-zone gauge-good"></div>
+            <div class="gauge-zone gauge-moderate"></div>
+            <div class="gauge-zone gauge-poor"></div>
+            <div class="gauge-marker" id="gaugeMarker"></div>
+          </div>
+          <div class="gauge-zone-labels">
+            <span>Good</span>
+            <span>Moderate</span>
+            <span>Poor</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="detections-log">
+      <div class="log-head">
+        <span class="eyebrow">DETECTION LOG</span>
+        <span class="log-count" id="logCount">0 entries</span>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <button class="btn-secondary" id="resetBtn">Analyze another photo</button>
+  </section>
+
+</main>
+
+<footer>
+  <div class="lane-divider" aria-hidden="true"></div>
+  <p>RoadScan runs entirely on your own uploaded photo — nothing is stored beyond this session's report.</p>
+</footer>
+
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
